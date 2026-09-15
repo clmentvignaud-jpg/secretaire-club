@@ -1,5 +1,322 @@
 <!DOCTYPE html>
 <html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="theme-color" content="#111827">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <title>Secrétaire Club</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      color: #111827;
+    }
+
+    header {
+      background: #111827;
+      color: white;
+      padding: 22px 18px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    header p {
+      margin: 6px 0 0;
+      opacity: 0.8;
+      font-size: 14px;
+    }
+
+    main {
+      max-width: 600px;
+      margin: auto;
+      padding: 18px;
+    }
+
+    .recherche {
+      width: 100%;
+      padding: 16px;
+      font-size: 17px;
+      border: 1px solid #d1d5db;
+      border-radius: 14px;
+      outline: none;
+      background: white;
+    }
+
+    .recherche:focus {
+      border-color: #111827;
+    }
+
+    .message {
+      text-align: center;
+      color: #6b7280;
+      padding: 30px 10px;
+    }
+
+    .carte {
+      background: white;
+      border-radius: 18px;
+      padding: 18px;
+      margin-top: 16px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+    }
+
+    .nom {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+
+    .statut {
+      display: inline-block;
+      padding: 9px 12px;
+      border-radius: 10px;
+      font-weight: bold;
+      margin-bottom: 16px;
+    }
+
+    .ok {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .alerte {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .ligne {
+      padding: 9px 0;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 15px;
+    }
+
+    .ligne:last-child {
+      border-bottom: none;
+    }
+
+    .libelle {
+      color: #6b7280;
+    }
+
+    .chargement {
+      text-align: center;
+      padding: 25px;
+      color: #6b7280;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>🥋 Secrétaire Club</h1>
+  <p>Gestion des adhérents</p>
+</header>
+
+<main>
+
+  <input
+    id="recherche"
+    class="recherche"
+    type="search"
+    placeholder="🔎 Rechercher un adhérent"
+    autocomplete="off"
+  >
+
+  <div id="resultats">
+    <div class="message">
+      Tape un prénom ou un nom pour rechercher un adhérent.
+    </div>
+  </div>
+
+</main>
+
+<script>
+
+  const API_URL =
+    "https://script.google.com/macros/s/AKfycbyLqvBlajcoTwyQL2SM5q1J7TcH4Zo8JidR78BkA-F9Gi4RsPuGaQh1tEwxmJla4ztM/exec";
+
+  const champRecherche = document.getElementById("recherche");
+  const zoneResultats = document.getElementById("resultats");
+
+  let numeroRecherche = 0;
+
+  champRecherche.addEventListener("input", function() {
+
+    const recherche = champRecherche.value.trim();
+
+    if (!recherche) {
+      zoneResultats.innerHTML =
+        '<div class="message">Tape un prénom ou un nom pour rechercher un adhérent.</div>';
+      return;
+    }
+
+    zoneResultats.innerHTML =
+      '<div class="chargement">Recherche en cours…</div>';
+
+    numeroRecherche++;
+    const cetteRecherche = numeroRecherche;
+
+    const callbackName = "resultatRecherche" + Date.now();
+
+    window[callbackName] = function(resultats) {
+
+      delete window[callbackName];
+
+      if (cetteRecherche !== numeroRecherche) {
+        return;
+      }
+
+      afficherResultats(resultats);
+    };
+
+    const script = document.createElement("script");
+
+    script.src =
+      API_URL +
+      "?api=rechercher" +
+      "&recherche=" + encodeURIComponent(recherche) +
+      "&callback=" + callbackName;
+
+    script.onerror = function() {
+
+      delete window[callbackName];
+
+      if (cetteRecherche !== numeroRecherche) {
+        return;
+      }
+
+      zoneResultats.innerHTML =
+        '<div class="message">❌ Impossible de contacter le serveur.</div>';
+    };
+
+    document.body.appendChild(script);
+
+    setTimeout(function() {
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    }, 10000);
+
+  });
+
+
+  function afficherResultats(resultats) {
+
+    if (!resultats || resultats.length === 0) {
+
+      zoneResultats.innerHTML =
+        '<div class="message">Aucun adhérent trouvé.</div>';
+
+      return;
+    }
+
+    zoneResultats.innerHTML = "";
+
+    resultats.forEach(function(adherent) {
+
+      const carte = document.createElement("div");
+      carte.className = "carte";
+
+      const montant =
+        Number(adherent.aRegler) || 0;
+
+      let statutHTML;
+
+      if (montant > 0) {
+
+        statutHTML =
+          '<div class="statut alerte">' +
+          '🔴 ' + montant.toFixed(2) + ' € à régler' +
+          '</div>';
+
+      } else {
+
+        statutHTML =
+          '<div class="statut ok">' +
+          '🟢 Cotisation à jour' +
+          '</div>';
+      }
+
+      carte.innerHTML =
+
+        '<div class="nom">' +
+        escapeHTML(adherent.prenom) +
+        ' ' +
+        escapeHTML(adherent.nom) +
+        '</div>' +
+
+        statutHTML +
+
+        '<div class="ligne">' +
+        '<span class="libelle">💶 Tarif :</span> ' +
+        Number(adherent.tarif || 0).toFixed(2) +
+        ' €</div>' +
+
+        '<div class="ligne">' +
+        '<span class="libelle">✅ Réglé :</span> ' +
+        Number(adherent.regle || 0).toFixed(2) +
+        ' €</div>' +
+
+        '<div class="ligne">' +
+        '<span class="libelle">📄 Certificat :</span> ' +
+        (adherent.certif || "—") +
+        '</div>' +
+
+        '<div class="ligne">' +
+        '<span class="libelle">🪪 Licence :</span> ' +
+        (adherent.licence || "—") +
+        '</div>' +
+
+        '<div class="ligne">' +
+        '<span class="libelle">📧 Email :</span> ' +
+        escapeHTML(adherent.email || "—") +
+        '</div>' +
+
+        '<div class="ligne">' +
+        '<span class="libelle">📞 Téléphone :</span> ' +
+        escapeHTML(adherent.telephone || "—") +
+        '</div>' +
+
+        '<div class="ligne">' +
+        '<span class="libelle">🏫 Salle :</span> ' +
+        escapeHTML(adherent.salle || "—") +
+        '</div>';
+
+      zoneResultats.appendChild(carte);
+    });
+  }
+
+
+  function escapeHTML(texte) {
+
+    return String(texte)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="fr">
 
 <head>
 
