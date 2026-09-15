@@ -148,15 +148,23 @@ recherche.addEventListener("input", function() {
   const script =
     document.createElement("script");
 
-  script.src =
+script.src =
     API_URL +
     "?api=rechercher" +
     "&recherche=" +
     encodeURIComponent(texte) +
     "&callback=" +
-    callback;
+    callback +
+    "&t=" +
+    Date.now();
 
   document.body.appendChild(script);
+
+  setTimeout(function() {
+  if (script.parentNode) {
+    script.parentNode.removeChild(script);
+  }
+}, 5000);
 
 });
 
