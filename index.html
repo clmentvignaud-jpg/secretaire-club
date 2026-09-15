@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>Secrétaire Club</title>
 
   <style>
@@ -14,25 +13,20 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f3f4f6;
-      color: #111827;
+      background: #f4f4f4;
+      color: #222;
     }
 
     header {
-      background: #111827;
+      background: #111;
       color: white;
-      padding: 24px 18px;
+      padding: 18px;
       text-align: center;
     }
 
     header h1 {
       margin: 0;
-      font-size: 24px;
-    }
-
-    header p {
-      margin: 6px 0 0;
-      opacity: 0.8;
+      font-size: 22px;
     }
 
     main {
@@ -41,63 +35,51 @@
       padding: 20px;
     }
 
-    #recherche {
+    input {
       width: 100%;
       padding: 16px;
-      border: 1px solid #d1d5db;
-      border-radius: 14px;
-      font-size: 17px;
-      background: white;
-    }
-
-    #resultats {
-      margin-top: 20px;
-    }
-
-    .message {
-      text-align: center;
-      padding: 25px 10px;
-      color: #6b7280;
+      font-size: 18px;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      margin-bottom: 15px;
     }
 
     .carte {
       background: white;
-      border-radius: 16px;
+      border-radius: 15px;
       padding: 18px;
-      margin-bottom: 15px;
-      box-shadow: 0 2px 10px rgba(0,0,0,.08);
+      margin-top: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
 
     .nom {
-      font-size: 22px;
+      font-size: 21px;
       font-weight: bold;
       margin-bottom: 12px;
     }
 
-    .statut {
-      padding: 10px;
-      border-radius: 10px;
-      margin-bottom: 15px;
-      font-weight: bold;
+    .ligne {
+      margin: 8px 0;
     }
 
     .ok {
-      background: #dcfce7;
-      color: #166534;
+      color: green;
+      font-weight: bold;
     }
 
-    .alerte {
-      background: #fee2e2;
-      color: #991b1b;
+    .attention {
+      color: #c62828;
+      font-weight: bold;
     }
 
-    .ligne {
-      padding: 9px 0;
-      border-bottom: 1px solid #eee;
+    #message {
+      text-align: center;
+      color: #666;
+      margin-top: 20px;
     }
 
-    .ligne:last-child {
-      border-bottom: none;
+    iframe {
+      display: none;
     }
   </style>
 </head>
@@ -106,183 +88,158 @@
 
 <header>
   <h1>🥋 Secrétaire Club</h1>
-  <p>Gestion des adhérents</p>
 </header>
 
 <main>
 
   <input
+    type="text"
     id="recherche"
-    type="search"
-    placeholder="🔎 Rechercher un adhérent"
+    placeholder="Rechercher un adhérent..."
     autocomplete="off"
   >
 
-  <div id="resultats">
-    <div class="message">
-      Tape un prénom ou un nom pour rechercher.
-    </div>
-  </div>
+  <div id="resultats"></div>
+
+  <div id="message"></div>
 
 </main>
 
+<iframe id="pont"></iframe>
+
 <script>
 
-const API_URL =
-"https://script.google.com/macros/s/AKfycbyLqvBlajcoTwyQL2SM5q1J7TcH4Zo8JidR78BkA-F9Gi4RsPuGaQh1tEwxmJla4ztM/exec";
+  const API_URL =
+    "https://script.google.com/macros/s/AKfycbyLqvBlajcoTwyQL2SM5q1J7TcH4Zo8JidR78BkA-F9Gi4RsPuGaQh1tEwxmJla4ztM/exec";
 
-const champ =
-document.getElementById("recherche");
+  const recherche =
+    document.getElementById("recherche");
 
-const zone =
-document.getElementById("resultats");
+  const resultats =
+    document.getElementById("resultats");
 
+  const message =
+    document.getElementById("message");
 
-champ.addEventListener("input", function() {
-
-  const texte =
-    champ.value.trim();
-
-  if (!texte) {
-
-    zone.innerHTML =
-      '<div class="message">' +
-      'Tape un prénom ou un nom pour rechercher.' +
-      '</div>';
-
-    return;
-  }
-
-  zone.innerHTML =
-    '<div class="message">🔎 Recherche...</div>';
+  const pont =
+    document.getElementById("pont");
 
 
-  const nomCallback =
-    "callbackRecherche";
+  function afficherAdherents(donnees) {
 
+    resultats.innerHTML = "";
 
-  window[nomCallback] =
-    function(donnees) {
+    if (!donnees || donnees.length === 0) {
+      message.textContent = "Aucun adhérent trouvé.";
+      return;
+    }
 
-      console.log("Réponse reçue :", donnees);
+    message.textContent = "";
 
-      zone.innerHTML = "";
+    donnees.forEach(function(adherent) {
 
+      const carte =
+        document.createElement("div");
 
-      if (!donnees || donnees.length === 0) {
+      carte.className = "carte";
 
-        zone.innerHTML =
-          '<div class="message">' +
-          'Aucun adhérent trouvé.' +
-          '</div>';
+      let paiement = "";
 
-        return;
+      if (adherent.aRegler > 0) {
+        paiement =
+          '<div class="ligne attention">🔴 ' +
+          adherent.aRegler +
+          ' € à régler</div>';
+      } else {
+        paiement =
+          '<div class="ligne ok">🟢 Cotisation à jour</div>';
       }
 
+      carte.innerHTML =
+        '<div class="nom">' +
+        adherent.prenom + " " +
+        adherent.nom +
+        '</div>' +
 
-      donnees.forEach(function(adherent) {
+        paiement +
 
-        const carte =
-          document.createElement("div");
+        '<div class="ligne">💰 Réglé : ' +
+        adherent.regle +
+        ' €</div>' +
 
-        carte.className = "carte";
+        '<div class="ligne">🩺 Certificat : ' +
+        (adherent.certif || "—") +
+        '</div>' +
 
+        '<div class="ligne">📄 Licence : ' +
+        (adherent.licence || "—") +
+        '</div>' +
 
-        let statut;
+        '<div class="ligne">📞 ' +
+        (adherent.telephone || "—") +
+        '</div>' +
 
-        if (Number(adherent.aRegler) > 0) {
+        '<div class="ligne">✉️ ' +
+        (adherent.email || "—") +
+        '</div>' +
 
-          statut =
-            '<div class="statut alerte">' +
-            '🔴 ' +
-            Number(adherent.aRegler).toFixed(2) +
-            ' € à régler' +
-            '</div>';
+        '<div class="ligne">🥋 Salle : ' +
+        (adherent.salle || "—") +
+        '</div>';
 
-        } else {
-
-          statut =
-            '<div class="statut ok">' +
-            '🟢 Cotisation à jour' +
-            '</div>';
-        }
-
-
-        carte.innerHTML =
-
-          '<div class="nom">' +
-          adherent.prenom +
-          ' ' +
-          adherent.nom +
-          '</div>' +
-
-          statut +
-
-          '<div class="ligne">💶 Tarif : ' +
-          Number(adherent.tarif || 0).toFixed(2) +
-          ' €</div>' +
-
-          '<div class="ligne">✅ Réglé : ' +
-          Number(adherent.regle || 0).toFixed(2) +
-          ' €</div>' +
-
-          '<div class="ligne">📄 Certificat : ' +
-          (adherent.certif || "—") +
-          '</div>' +
-
-          '<div class="ligne">🪪 Licence : ' +
-          (adherent.licence || "—") +
-          '</div>' +
-
-          '<div class="ligne">📧 Email : ' +
-          (adherent.email || "—") +
-          '</div>' +
-
-          '<div class="ligne">📞 Téléphone : ' +
-          (adherent.telephone || "—") +
-          '</div>' +
-
-          '<div class="ligne">🏫 Salle : ' +
-          (adherent.salle || "—") +
-          '</div>';
-
-
-        zone.appendChild(carte);
-
-      });
-
-    };
-
-
-  const ancien =
-    document.getElementById("scriptRecherche");
-
-  if (ancien) {
-    ancien.remove();
+      resultats.appendChild(carte);
+    });
   }
 
 
-  const script =
-    document.createElement("script");
+  window.addEventListener("message", function(event) {
 
-  script.id =
-    "scriptRecherche";
+    if (
+      event.data &&
+      event.data.type ===
+      "reponseSecretaireClub"
+    ) {
 
+      afficherAdherents(
+        event.data.donnees
+      );
+    }
 
-  script.src =
-    API_URL +
-    "?api=rechercher" +
-    "&recherche=" +
-    encodeURIComponent(texte) +
-    "&callback=" +
-    nomCallback +
-    "&t=" +
-    Date.now();
+  });
 
 
-  document.body.appendChild(script);
+  let timer = null;
 
-});
+
+  recherche.addEventListener("input", function() {
+
+    clearTimeout(timer);
+
+    const texte =
+      recherche.value.trim();
+
+    if (!texte) {
+      resultats.innerHTML = "";
+      message.textContent = "";
+      return;
+    }
+
+    message.textContent =
+      "Recherche…";
+
+    timer = setTimeout(function() {
+
+      pont.src =
+        API_URL +
+        "?api=bridge" +
+        "&recherche=" +
+        encodeURIComponent(texte) +
+        "&t=" +
+        Date.now();
+
+    }, 300);
+
+  });
 
 </script>
 
