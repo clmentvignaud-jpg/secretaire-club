@@ -32,7 +32,7 @@
 
     header p {
       margin: 6px 0 0;
-      font-size: 14px;
+      opacity: 0.8;
     }
 
     main {
@@ -41,10 +41,10 @@
       padding: 20px;
     }
 
-    input {
+    #recherche {
       width: 100%;
       padding: 16px;
-      border: 1px solid #ccc;
+      border: 1px solid #d1d5db;
       border-radius: 14px;
       font-size: 17px;
       background: white;
@@ -56,8 +56,8 @@
 
     .message {
       text-align: center;
-      color: #666;
       padding: 25px 10px;
+      color: #6b7280;
     }
 
     .carte {
@@ -74,19 +74,30 @@
       margin-bottom: 12px;
     }
 
-    .ligne {
-      padding: 8px 0;
-      border-bottom: 1px solid #eee;
+    .statut {
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      font-weight: bold;
     }
 
     .ok {
-      color: green;
-      font-weight: bold;
+      background: #dcfce7;
+      color: #166534;
     }
 
     .alerte {
-      color: red;
-      font-weight: bold;
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .ligne {
+      padding: 9px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .ligne:last-child {
+      border-bottom: none;
     }
   </style>
 </head>
@@ -104,11 +115,12 @@
     id="recherche"
     type="search"
     placeholder="🔎 Rechercher un adhérent"
+    autocomplete="off"
   >
 
   <div id="resultats">
     <div class="message">
-      Tape un prénom ou un nom.
+      Tape un prénom ou un nom pour rechercher.
     </div>
   </div>
 
@@ -119,132 +131,158 @@
 const API_URL =
 "https://script.google.com/macros/s/AKfycbyLqvBlajcoTwyQL2SM5q1J7TcH4Zo8JidR78BkA-F9Gi4RsPuGaQh1tEwxmJla4ztM/exec";
 
-const recherche = document.getElementById("recherche");
-const resultats = document.getElementById("resultats");
+const champ =
+document.getElementById("recherche");
 
-recherche.addEventListener("input", function() {
+const zone =
+document.getElementById("resultats");
 
-  const texte = recherche.value.trim();
+
+champ.addEventListener("input", function() {
+
+  const texte =
+    champ.value.trim();
 
   if (!texte) {
-    resultats.innerHTML =
-      '<div class="message">Tape un prénom ou un nom.</div>';
+
+    zone.innerHTML =
+      '<div class="message">' +
+      'Tape un prénom ou un nom pour rechercher.' +
+      '</div>';
+
     return;
   }
 
-  resultats.innerHTML =
+  zone.innerHTML =
     '<div class="message">🔎 Recherche...</div>';
 
-  const callback =
-    "callback_" + Date.now();
 
-  window[callback] = function(data) {
+  const nomCallback =
+    "callbackRecherche";
 
-    delete window[callback];
 
-    afficher(data);
-  };
+  window[nomCallback] =
+    function(donnees) {
+
+      console.log("Réponse reçue :", donnees);
+
+      zone.innerHTML = "";
+
+
+      if (!donnees || donnees.length === 0) {
+
+        zone.innerHTML =
+          '<div class="message">' +
+          'Aucun adhérent trouvé.' +
+          '</div>';
+
+        return;
+      }
+
+
+      donnees.forEach(function(adherent) {
+
+        const carte =
+          document.createElement("div");
+
+        carte.className = "carte";
+
+
+        let statut;
+
+        if (Number(adherent.aRegler) > 0) {
+
+          statut =
+            '<div class="statut alerte">' +
+            '🔴 ' +
+            Number(adherent.aRegler).toFixed(2) +
+            ' € à régler' +
+            '</div>';
+
+        } else {
+
+          statut =
+            '<div class="statut ok">' +
+            '🟢 Cotisation à jour' +
+            '</div>';
+        }
+
+
+        carte.innerHTML =
+
+          '<div class="nom">' +
+          adherent.prenom +
+          ' ' +
+          adherent.nom +
+          '</div>' +
+
+          statut +
+
+          '<div class="ligne">💶 Tarif : ' +
+          Number(adherent.tarif || 0).toFixed(2) +
+          ' €</div>' +
+
+          '<div class="ligne">✅ Réglé : ' +
+          Number(adherent.regle || 0).toFixed(2) +
+          ' €</div>' +
+
+          '<div class="ligne">📄 Certificat : ' +
+          (adherent.certif || "—") +
+          '</div>' +
+
+          '<div class="ligne">🪪 Licence : ' +
+          (adherent.licence || "—") +
+          '</div>' +
+
+          '<div class="ligne">📧 Email : ' +
+          (adherent.email || "—") +
+          '</div>' +
+
+          '<div class="ligne">📞 Téléphone : ' +
+          (adherent.telephone || "—") +
+          '</div>' +
+
+          '<div class="ligne">🏫 Salle : ' +
+          (adherent.salle || "—") +
+          '</div>';
+
+
+        zone.appendChild(carte);
+
+      });
+
+    };
+
+
+  const ancien =
+    document.getElementById("scriptRecherche");
+
+  if (ancien) {
+    ancien.remove();
+  }
+
 
   const script =
     document.createElement("script");
 
-script.src =
+  script.id =
+    "scriptRecherche";
+
+
+  script.src =
     API_URL +
     "?api=rechercher" +
     "&recherche=" +
     encodeURIComponent(texte) +
     "&callback=" +
-    callback +
+    nomCallback +
     "&t=" +
     Date.now();
 
+
   document.body.appendChild(script);
 
-  setTimeout(function() {
-  if (script.parentNode) {
-    script.parentNode.removeChild(script);
-  }
-}, 5000);
-
 });
-
-
-function afficher(data) {
-
-  if (!data || data.length === 0) {
-
-    resultats.innerHTML =
-      '<div class="message">Aucun adhérent trouvé.</div>';
-
-    return;
-  }
-
-  resultats.innerHTML = "";
-
-  data.forEach(function(adherent) {
-
-    const carte =
-      document.createElement("div");
-
-    carte.className = "carte";
-
-    let statut = "";
-
-    if (Number(adherent.aRegler) > 0) {
-
-      statut =
-        '<div class="alerte">🔴 ' +
-        Number(adherent.aRegler).toFixed(2) +
-        ' € à régler</div>';
-
-    } else {
-
-      statut =
-        '<div class="ok">🟢 Cotisation à jour</div>';
-    }
-
-    carte.innerHTML =
-
-      '<div class="nom">' +
-      adherent.prenom +
-      ' ' +
-      adherent.nom +
-      '</div>' +
-
-      statut +
-
-      '<div class="ligne">💶 Tarif : ' +
-      Number(adherent.tarif).toFixed(2) +
-      ' €</div>' +
-
-      '<div class="ligne">✅ Réglé : ' +
-      Number(adherent.regle).toFixed(2) +
-      ' €</div>' +
-
-      '<div class="ligne">📄 Certificat : ' +
-      (adherent.certif || "—") +
-      '</div>' +
-
-      '<div class="ligne">🪪 Licence : ' +
-      (adherent.licence || "—") +
-      '</div>' +
-
-      '<div class="ligne">📧 Email : ' +
-      (adherent.email || "—") +
-      '</div>' +
-
-      '<div class="ligne">📞 Téléphone : ' +
-      (adherent.telephone || "—") +
-      '</div>' +
-
-      '<div class="ligne">🏫 Salle : ' +
-      (adherent.salle || "—") +
-      '</div>';
-
-    resultats.appendChild(carte);
-
-  });
-}
 
 </script>
 
