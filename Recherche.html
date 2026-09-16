@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <style>
+
+    /* =========================
+       BASE
+       ========================= */
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow-x: hidden;
+
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+      background: #f1f3f4;
+      color: #202124;
+
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      overscroll-behavior-x: none;
+    }
+
+
+    /* =========================
+       APPLICATION
+       ========================= */
+
+    .app {
+      width: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+
+      display: flex;
+      flex-direction: column;
+    }
+
+
+    /* =========================
+       BARRE DU HAUT
+       ========================= */
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+
+      width: 100%;
+
+      padding:
+        calc(env(safe-area-inset-top) + 14px)
+        16px
+        14px;
+
+      background: #202124;
+      color: white;
+
+      box-shadow:
+        0 2px 8px rgba(0,0,0,0.18);
+    }
+
+    .topbar-title {
+      font-size: 21px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .topbar-subtitle {
+      margin-top: 4px;
+
+      font-size: 13px;
+      color: #bdc1c6;
+    }
+
+
+    /* =========================
+       ZONE DE RECHERCHE
+       ========================= */
+
+    .search-zone {
+      position: sticky;
+      top: 77px;
+      z-index: 15;
+
+      width: 100%;
+
+      padding: 12px 14px;
+
+      background: #f1f3f4;
+
+      border-bottom:
+        1px solid #dadce0;
+    }
+
+    .search-box {
+      position: relative;
+
+      width: 100%;
+    }
+
+    .search-icon {
+      position: absolute;
+
+      left: 16px;
+      top: 50%;
+
+      transform: translateY(-50%);
+
+      font-size: 20px;
+
+      pointer-events: none;
+    }
+
+    #recherche {
+      display: block;
+
+      width: 100%;
+      height: 54px;
+
+      padding:
+        0
+        16px
+        0
+        48px;
+
+      border: none;
+      border-radius: 18px;
+
+      outline: none;
+
+      background: white;
+
+      color: #202124;
+
+      font-size: 17px;
+
+      box-shadow:
+        0 2px 8px rgba(0,0,0,0.10);
+
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    #recherche::placeholder {
+      color: #80868b;
+    }
+
+    #recherche:focus {
+      box-shadow:
+        0 2px 8px rgba(0,0,0,0.12);
+    }
+
+
+    /* =========================
+       CONTENU
+       ========================= */
+
+    #resultats {
+      width: 100%;
+
+      padding:
+        8px
+        14px
+        calc(24px + env(safe-area-inset-bottom));
+    }
+
+
+    /* =========================
+       MESSAGE
+       ========================= */
+
+    .message {
+      width: 100%;
+
+      padding: 40px 20px;
+
+      text-align: center;
+
+      color: #80868b;
+
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+
+    /* =========================
+       FICHE ADHÉRENT
+       ========================= */
+
+    .carte {
+      width: 100%;
+
+      margin:
+        0
+        0
+        14px;
+
+      padding: 16px;
+
+      background: white;
+
+      border-radius: 20px;
+
+      box-shadow:
+        0 2px 10px rgba(0,0,0,0.08);
+
+      overflow: hidden;
+    }
+
+
+    /* =========================
+       NOM
+       ========================= */
+
+    .nom {
+      width: 100%;
+
+      margin-bottom: 12px;
+
+      font-size: 22px;
+      font-weight: 700;
+
+      line-height: 1.25;
+
+      overflow-wrap: anywhere;
+    }
+
+
+    /* =========================
+       STATUT
+       ========================= */
+
+    .statut {
+      width: 100%;
+
+      padding: 12px;
+
+      margin-bottom: 14px;
+
+      border-radius: 14px;
+
+      text-align: center;
+
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .statut-ok {
+      background: #e6f4ea;
+      color: #137333;
+    }
+
+    .statut-retard {
+      background: #fce8e6;
+      color: #c5221f;
+    }
+
+
+    /* =========================
+       ARGENT
+       ========================= */
+
+    .bloc-finances {
+      width: 100%;
+
+      padding: 12px 14px;
+
+      margin-bottom: 14px;
+
+      background: #f8f9fa;
+
+      border-radius: 14px;
+    }
+
+    .ligne-finance {
+      display: flex;
+
+      justify-content: space-between;
+      align-items: center;
+
+      gap: 12px;
+
+      width: 100%;
+
+      min-height: 32px;
+
+      font-size: 15px;
+    }
+
+    .ligne-finance span:first-child {
+      color: #5f6368;
+    }
+
+    .ligne-finance span:last-child {
+      font-weight: 700;
+
+      white-space: nowrap;
+    }
+
+
+    /* =========================
+       INFORMATIONS
+       ========================= */
+
+    .infos {
+      width: 100%;
+
+      margin-bottom: 8px;
+    }
+
+    .info {
+      width: 100%;
+
+      padding: 9px 0;
+
+      border-bottom:
+        1px solid #eeeeee;
+    }
+
+    .info:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      margin-bottom: 3px;
+
+      font-size: 11px;
+
+      color: #80868b;
+
+      font-weight: 700;
+
+      text-transform: uppercase;
+    }
+
+    .info-value {
+      width: 100%;
+
+      font-size: 15px;
+
+      line-height: 1.4;
+
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+
+    /* =========================
+       AJOUT RÈGLEMENT
+       ========================= */
+
+    .reglement {
+      width: 100%;
+
+      margin-top: 10px;
+
+      padding-top: 14px;
+
+      border-top:
+        1px solid #eeeeee;
+    }
+
+    .reglement-titre {
+      margin-bottom: 9px;
+
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .champ-montant {
+      display: block;
+
+      width: 100%;
+      height: 52px;
+
+      padding: 0 14px;
+
+      border:
+        1px solid #dadce0;
+
+      border-radius: 13px;
+
+      background: white;
+
+      color: #202124;
+
+      font-size: 17px;
+
+      outline: none;
+
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .champ-montant:focus {
+      border-color: #5f6368;
+    }
+
+    .bouton {
+      display: block;
+
+      width: 100%;
+      min-height: 52px;
+
+      margin-top: 9px;
+
+      padding: 0 16px;
+
+      border: none;
+      border-radius: 13px;
+
+      background: #202124;
+      color: white;
+
+      font-size: 16px;
+      font-weight: 700;
+
+      cursor: pointer;
+
+      touch-action: manipulation;
+
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .bouton:active {
+      transform: scale(0.98);
+    }
+
+    .bouton:disabled {
+      opacity: 0.55;
+    }
+
+
+    /* =========================
+       PETITS TÉLÉPHONES
+       ========================= */
+
+    @media (max-width: 360px) {
+
+      .topbar-title {
+        font-size: 19px;
+      }
+
+      .carte {
+        padding: 14px;
+        border-radius: 18px;
+      }
+
+      .nom {
+        font-size: 20px;
+      }
+
+      #resultats {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+
+      .search-zone {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+    }
+
+  </style>
+</head>
+
+
+<body>
+
+  <div class="app">
+
+
+    <!-- =====================
+         EN-TÊTE
+         ===================== -->
+
+    <header class="topbar">
+
+      <div class="topbar-title">
+        🥋 Gestion des adhérents
+      </div>
+
+      <div class="topbar-subtitle">
+        Secrétaire du club
+      </div>
+
+    </header>
+
+
+    <!-- =====================
+         RECHERCHE
+         ===================== -->
+
+    <section class="search-zone">
+
+      <div class="search-box">
+
+        <div class="search-icon">
+          🔎
+        </div>
+
+        <input
+          id="recherche"
+          type="search"
+          placeholder="Nom ou prénom"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="words"
+          spellcheck="false"
+        >
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================
+         RÉSULTATS
+         ===================== -->
+
+    <main id="resultats">
+
+      <div class="message">
+        🔎<br><br>
+        Recherche un adhérent par son nom ou son prénom.
+      </div>
+
+    </main>
+
+
+  </div>
+
+
+  <script>
+
+
+    /* =========================
+       ÉLÉMENTS
+       ========================= */
+
+    const champRecherche =
+      document.getElementById("recherche");
+
+    const zoneResultats =
+      document.getElementById("resultats");
+
+
+    /* =========================
+       RECHERCHE
+       ========================= */
+
+    champRecherche.addEventListener(
+      "input",
+      function() {
+
+        const recherche =
+          this.value.trim();
+
+
+        if (!recherche) {
+
+          zoneResultats.innerHTML =
+            '<div class="message">' +
+            '🔎<br><br>' +
+            'Recherche un adhérent par son nom ou son prénom.' +
+            '</div>';
+
+          return;
+        }
+
+
+        zoneResultats.innerHTML =
+          '<div class="message">' +
+          'Recherche en cours…' +
+          '</div>';
+
+
+        google.script.run
+
+          .withSuccessHandler(
+            afficherResultats
+          )
+
+          .withFailureHandler(
+            function(erreur) {
+
+              zoneResultats.innerHTML =
+                '<div class="message">' +
+                '❌ Une erreur est survenue.' +
+                '</div>';
+
+              console.error(erreur);
+
+            }
+          )
+
+          .rechercherAdherent(
+            recherche
+          );
+
+      }
+    );
+
+
+    /* =========================
+       AFFICHAGE
+       ========================= */
+
+    function afficherResultats(resultats) {
+
+
+      zoneResultats.innerHTML = "";
+
+
+      if (
+        !resultats ||
+        resultats.length === 0
+      ) {
+
+        zoneResultats.innerHTML =
+          '<div class="message">' +
+          'Aucun adhérent trouvé.' +
+          '</div>';
+
+        return;
+      }
+
+
+      resultats.forEach(
+        function(adherent) {
+
+
+          const carte =
+            document.createElement("div");
+
+          carte.className =
+            "carte";
+
+
+          /* NOM */
+
+          const nom =
+            document.createElement("div");
+
+          nom.className =
+            "nom";
+
+          nom.textContent =
+            adherent.prenom +
+            " " +
+            adherent.nom;
+
+          carte.appendChild(nom);
+
+
+          /* STATUT */
+
+          const statut =
+            document.createElement("div");
+
+          statut.className =
+            "statut";
+
+
+          if (
+            adherent.aRegler > 0
+          ) {
+
+            statut.classList.add(
+              "statut-retard"
+            );
+
+            statut.textContent =
+              "🔴 " +
+              formaterMontant(
+                adherent.aRegler
+              ) +
+              " € À RÉGLER";
+
+          } else {
+
+            statut.classList.add(
+              "statut-ok"
+            );
+
+            statut.textContent =
+              "🟢 COTISATION À JOUR";
+          }
+
+
+          carte.appendChild(statut);
+
+
+          /* FINANCES */
+
+          const finances =
+            document.createElement("div");
+
+          finances.className =
+            "bloc-finances";
+
+
+          finances.innerHTML =
+
+            '<div class="ligne-finance">' +
+              '<span>Tarif</span>' +
+              '<span>' +
+                formaterMontant(
+                  adherent.tarif
+                ) +
+                ' €' +
+              '</span>' +
+            '</div>' +
+
+            '<div class="ligne-finance">' +
+              '<span>Déjà réglé</span>' +
+              '<span>' +
+                formaterMontant(
+                  adherent.regle
+                ) +
+                ' €' +
+              '</span>' +
+            '</div>' +
+
+            '<div class="ligne-finance">' +
+              '<span>Reste à régler</span>' +
+              '<span>' +
+                formaterMontant(
+                  adherent.aRegler
+                ) +
+                ' €' +
+              '</span>' +
+            '</div>';
+
+
+          carte.appendChild(finances);
+
+
+          /* INFORMATIONS */
+
+          const infos =
+            document.createElement("div");
+
+          infos.className =
+            "infos";
+
+
+          ajouterInfo(
+            infos,
+            "📞 Téléphone",
+            adherent.telephone
+          );
+
+
+          ajouterInfo(
+            infos,
+            "✉️ Email",
+            adherent.email
+          );
+
+
+          ajouterInfo(
+            infos,
+            "🏠 Salle",
+            adherent.salle
+          );
+
+
+          ajouterInfo(
+            infos,
+            "🩺 Certificat médical",
+            adherent.certif
+          );
+
+
+          ajouterInfo(
+            infos,
+            "📄 Licence",
+            adherent.licence
+          );
+
+
+          carte.appendChild(infos);
+
+
+          /* RÈGLEMENT */
+
+          const reglement =
+            document.createElement("div");
+
+          reglement.className =
+            "reglement";
+
+
+          const titre =
+            document.createElement("div");
+
+          titre.className =
+            "reglement-titre";
+
+          titre.textContent =
+            "💶 Ajouter un règlement";
+
+
+          reglement.appendChild(titre);
+
+
+          /* CHAMP MONTANT */
+
+          const champMontant =
+            document.createElement("input");
+
+          champMontant.className =
+            "champ-montant";
+
+          champMontant.type =
+            "number";
+
+          champMontant.inputMode =
+            "decimal";
+
+          champMontant.min =
+            "0";
+
+          champMontant.step =
+            "0.01";
+
+          champMontant.placeholder =
+            "Montant en euros";
+
+
+          reglement.appendChild(
+            champMontant
+          );
+
+
+          /* BOUTON */
+
+          const bouton =
+            document.createElement("button");
+
+          bouton.className =
+            "bouton";
+
+          bouton.type =
+            "button";
+
+          bouton.textContent =
+            "➕ Ajouter le règlement";
+
+
+          bouton.addEventListener(
+            "click",
+            function() {
+
+
+              const montant =
+                Number(
+                  champMontant.value
+                );
+
+
+              if (
+                !montant ||
+                montant <= 0
+              ) {
+
+                alert(
+                  "Indique un montant supérieur à 0 €."
+                );
+
+                return;
+              }
+
+
+              bouton.disabled =
+                true;
+
+              bouton.textContent =
+                "Enregistrement…";
+
+
+              google.script.run
+
+                .withSuccessHandler(
+                  function(resultat) {
+
+
+                    alert(
+                      "✅ Règlement ajouté : " +
+                      formaterMontant(
+                        resultat.montantAjoute
+                      ) +
+                      " €"
+                    );
+
+
+                    bouton.disabled =
+                      false;
+
+                    bouton.textContent =
+                      "➕ Ajouter le règlement";
+
+
+                    champMontant.value =
+                      "";
+
+
+                    /* ACTUALISATION */
+
+                    google.script.run
+
+                      .withSuccessHandler(
+                        afficherResultats
+                      )
+
+                      .rechercherAdherent(
+                        champRecherche.value.trim()
+                      );
+
+                  }
+                )
+
+
+                .withFailureHandler(
+                  function(erreur) {
+
+
+                    alert(
+                      "❌ Erreur : " +
+                      erreur.message
+                    );
+
+
+                    bouton.disabled =
+                      false;
+
+                    bouton.textContent =
+                      "➕ Ajouter le règlement";
+
+                  }
+                )
+
+
+                .ajouterReglement(
+                  adherent.prenom,
+                  adherent.nom,
+                  montant
+                );
+
+            }
+          );
+
+
+          reglement.appendChild(
+            bouton
+          );
+
+
+          carte.appendChild(
+            reglement
+          );
+
+
+          zoneResultats.appendChild(
+            carte
+          );
+
+        }
+      );
+
+    }
+
+
+    /* =========================
+       INFORMATION
+       ========================= */
+
+    function ajouterInfo(
+      conteneur,
+      label,
+      valeur
+    ) {
+
+
+      if (!valeur) {
+        return;
+      }
+
+
+      const bloc =
+        document.createElement("div");
+
+      bloc.className =
+        "info";
+
+
+      const labelElement =
+        document.createElement("div");
+
+      labelElement.className =
+        "info-label";
+
+      labelElement.textContent =
+        label;
+
+
+      const valeurElement =
+        document.createElement("div");
+
+      valeurElement.className =
+        "info-value";
+
+      valeurElement.textContent =
+        valeur;
+
+
+      bloc.appendChild(
+        labelElement
+      );
+
+      bloc.appendChild(
+        valeurElement
+      );
+
+
+      conteneur.appendChild(
+        bloc
+      );
+
+    }
+
+
+    /* =========================
+       FORMAT MONNAIE
+       ========================= */
+
+    function formaterMontant(
+      montant
+    ) {
+
+      return Number(
+        montant || 0
+      )
+      .toFixed(2)
+      .replace(".", ",");
+
+    }
+
+
+  </script>
+
+</body>
+</html>

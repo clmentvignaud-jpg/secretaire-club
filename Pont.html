@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+</head>
+
+<body>
+
+<script>
+  const donnees = <?!= JSON.stringify(donnees) ?>;
+
+  window.parent.postMessage(
+    {
+      type: "reponseSecretaireClub",
+      donnees: donnees
+    },
+    "*"
+  );
+</script>
+
+</body>
+</html>
